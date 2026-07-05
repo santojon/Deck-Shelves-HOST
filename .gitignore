@@ -1,0 +1,44 @@
+# Node
+node_modules/
+dist/
+out/
+*.log
+.DS_Store
+
+# tmp files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+/temp/
+
+# pnpm
+.pnpm-store/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# VSCode
+.vscode/
+
+# Environment (secrets)
+.env
+.env.*
+!.env.example
+
+# Build / pack artifacts
+build/
+*.tgz
+
+# Deploy staging
+.deploy/
+*.zip
+
+# Coverage
+coverage/
+*.lcov
+
+# Hidden folders
+/.*/
+!.github/

@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Primary gate (required status check `validate`). Runs on Linux, builds the
+  # package, and uploads the tarball artifact.
+  validate:
+    runs-on: ubuntu-latest
+    # Skip the auto-commit bump on main (bump.yml already validated it),
+    # but always run on PRs, tags, and manual dispatch.
+    if: |
+      github.ref_type == 'tag'
+      || !startsWith(github.event.head_commit.message, 'chore: bump version')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile=false
+
+      - name: TypeScript check
+        run: pnpm run typecheck
+
+      - name: ESLint (bug catchers)
+        run: pnpm run lint
+
+      - name: Unit tests
+        run: pnpm run test
+
+      - name: Build (contract + runtime)
+        run: pnpm run build
+
+      - name: Pack tarball
+        run: pnpm pack
+
+      - name: Upload package tarball artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deck-shelves-host-${{ github.sha }}
+          path: "*.tgz"
+
+  # Cross-OS coverage: the dev flows must work natively on Windows and macOS
+  # (no Git Bash / WSL required). Non-blocking matrix that surfaces regressions.
+  cross-os:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    if: |
+      github.ref_type == 'tag'
+      || !startsWith(github.event.head_commit.message, 'chore: bump version')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile=false
+
+      - name: Check (typecheck + lint + test)
+        run: pnpm run check
+
+      - name: Build (contract + runtime)
+        run: pnpm run build

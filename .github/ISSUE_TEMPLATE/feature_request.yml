@@ -1,0 +1,33 @@
+name: "[FEATURE] Feature Request"
+description: Suggest a new capability for the host contract or runtime
+title: "[FEATURE] "
+labels: ["type::feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Before submitting:** check if a similar request already exists.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / use case
+      description: What are you trying to do that the current host contract doesn't support?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed API
+      description: Sketch the namespace/method/type you'd like (signatures welcome). Remember the contract is additive-only after 1.0.0.
+      render: ts
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
