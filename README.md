@@ -6,9 +6,8 @@ the `HostApi` types that both host implementations and the bundle build against.
 It is the boundary between a *host* and the Deck Shelves bundle:
 
 - the plugin's **Decky** adapter (`runtime/host/decky.ts`), and
-- the standalone **[Shelves Loader](https://github.com/santojon/Shelves-Loader)**
-  adapter (`runtime/host/standalone.ts`), which wraps the loader-injected
-  `window.__SHELVES_HOST__` runtime.
+- the standalone adapter (`runtime/host/standalone.ts`),
+which wraps the loader-injected `window.__SHELVES_HOST__` runtime.
 
 Both fulfil the same contract, so the bundle's call sites never depend on a
 specific host.
@@ -41,12 +40,6 @@ pnpm install
 pnpm build      # tsup → dist/index.{js,cjs,d.ts}
 pnpm check      # typecheck + lint + test
 ```
-
-## Status
-
-Scaffolded as an incubation folder inside the Deck Shelves monorepo (like
-`api/` and `deckprobe/`), to later be extracted into its own repository and
-wired back as a submodule. See `../.roadmaps/standalone-host-adapter.md`.
 
 ## License
 
