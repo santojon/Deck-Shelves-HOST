@@ -5,6 +5,8 @@ GitHub Release body at tag time.
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-07-05
+
 - **First cut of the host contract.** `@deck-shelves/host` is the `HostApi`
   types both host adapters (Decky + the standalone Shelves Loader) and the Deck
   Shelves bundle build against — a single source of truth replacing the two
