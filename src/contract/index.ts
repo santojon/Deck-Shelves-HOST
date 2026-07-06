@@ -87,10 +87,6 @@ export interface HostUi {
 }
 
 // ── Platform (data-resolution surface) ──────────────────────────────────────
-// Mirrors the plugin's `src/runtime/platform.ts`. Renderer-side: the host
-// adapter resolves these from Steam globals (`SteamClient` / `collectionStore`).
-
-/** Opaque until reconciled in Batch 5 with the plugin's `ShelfSource` union. */
 export type ShelfSource = unknown;
 
 export interface PlatformCollection {
