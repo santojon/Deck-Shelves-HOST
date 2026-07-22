@@ -1,13 +1,13 @@
 /**
  * @deck-shelves/host — HostApi contract (v1.1.0).
  *
- * The single source of truth for the boundary between a *host* (the plugin's
- * host adapter OR the standalone Shelves Loader) and the Deck Shelves bundle.
- * Both host adapters fulfil this shape, so the bundle's call sites depend only
- * on it and never on a specific host's UI library directly.
+ * The single source of truth for the boundary between a *host* and the Deck
+ * Shelves bundle. Every host ships its own adapter (one per host), and every
+ * adapter fulfils this shape, so the bundle's call sites depend only on it
+ * and never on a specific host's UI library directly.
  *
  * Additive-only after 1.0.0. `qam` was added in 1.1.0 as an optional, additive
- * namespace (only the standalone host implements it today).
+ * namespace (implemented by hosts that render their own Quick Access panels).
  *
  * Dependency-free by design (mirrors `@deck-shelves/api`): supporting data
  * types are inlined. Members annotated "reconciled in Batch 5" are placeholders
@@ -33,9 +33,9 @@ export interface HostLifecycle {
   onUnmount(cb: () => void): void;
 }
 
-/** Generic RPC channel into the host backend. On the plugin host this routes
- *  through the host's backend bridge; on standalone through the loader's HTTP
- *  RPC server, which proxies to the plugin's Python backend. */
+/** Generic RPC channel into the host backend. Each host routes it to the
+ *  plugin's data backend through its own transport (an in-process bridge, a
+ *  local HTTP server that proxies to the backend process, …). */
 export interface HostRpc {
   call<Req = unknown, Res = unknown>(method: string, args?: Req): Promise<Res>;
 }
@@ -56,10 +56,10 @@ export interface HostNotifications {
 }
 
 /**
- * Steam UI primitives the bundle renders with. On the plugin host these come
- * from its UI library; on the standalone host the injected runtime locates the
- * SAME Steam webpack components (via the Shelves Loader's injected runtime) — we do not
- * reimplement the widgets, we find Steam's own and provide fallbacks.
+ * Steam UI primitives the bundle renders with. Every host resolves the SAME
+ * Steam webpack components through its own mechanism (a UI library, an
+ * injected runtime, …) — we do not reimplement the widgets, we find Steam's
+ * own and provide fallbacks.
  *
  * Typed as `unknown` to stay framework-agnostic and dependency-free; the bundle
  * casts each to its React component / handler type at the call site.
@@ -136,7 +136,7 @@ export interface PlatformApi {
   getAppMetaBatch?(appids: number[]): Promise<Map<number, PlatformAppMeta>>;
   navigateToApp(appid: number): void;
   navigateToShelfSource?(source: ShelfSource, title?: string): void;
-  /** Host/OS info folded in from the standalone loader's original contract. */
+  /** Optional host/OS information a host may expose. */
   getOSVersion?(): string;
   checkCompatibility?(): boolean;
 }
@@ -163,8 +163,8 @@ export interface HostQam {
 /**
  * What the host process provides to the Deck Shelves bundle. The bundle receives
  * this at startup as `window.__SHELVES_HOST__` and uses it to register itself,
- * invoke host methods, add routes, render Steam-native UI, and (on the
- * standalone host) add Quick Access Menu panels.
+ * invoke host methods, add routes, render Steam-native UI, and — where the
+ * host supports it — add Quick Access Menu panels.
  */
 export interface HostApi {
   readonly version: typeof HOST_API_VERSION;

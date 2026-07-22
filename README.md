@@ -22,18 +22,15 @@
 The **host contract** for [Deck Shelves](https://github.com/santojon/Deck-Shelves) —
 the `HostApi` types that both host implementations and the bundle build against.
 
-It is the boundary between a *host* and the Deck Shelves bundle:
+It is the boundary between a *host* and the Deck Shelves bundle. Each host
+ships its own adapter in the plugin — one file per host,
+`runtime/host/<host>.ts` — and every adapter fulfils this same contract, so
+the bundle's call sites never depend on a specific host and new hosts can be
+added without touching the bundle.
 
-- the plugin's **Decky** adapter (`runtime/host/decky.ts`), and
-- the standalone adapter (`runtime/host/standalone.ts`),
-which wraps the loader-injected `window.__SHELVES_HOST__` runtime.
-
-Both fulfil the same contract, so the bundle's call sites never depend on a
-specific host.
-
-> **Types only.** The standalone host *runtime* — the injected
+> **Types only.** A host's *runtime* — for external hosts, the injected
 > `window.__SHELVES_HOST__` that locates Steam's UI components and adds the
-> Quick Access Menu tab — lives in the **Shelves Loader**, not here. This
+> Quick Access Menu tab — lives in that host's own project, not here. This
 > package is just the interface both sides agree on.
 
 It is **not** `@deck-shelves/api` — that package is the public *extension* API

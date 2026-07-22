@@ -8,10 +8,10 @@ GitHub Release body at tag time.
 ## [1.1.0] - 2026-07-05
 
 - **First cut of the host contract.** `@deck-shelves/host` is the `HostApi`
-  types both host adapters (Decky + the standalone Shelves Loader) and the Deck
+  types both host adapters (one adapter per host) and the Deck
   Shelves bundle build against — a single source of truth replacing the two
   divergent copies that live in the plugin and the loader today. **Types only**;
-  the injected host runtime (Steam UI + QAM tab) lives in the Shelves Loader.
+  the injected host runtime (Steam UI + QAM tab) lives in each host's own project.
 - Still to do: reconcile the `ShelfSource` / rich `platform` types against the
   plugin's `src/types.ts`, and extract this package into its own repository +
   submodule.

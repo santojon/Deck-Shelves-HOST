@@ -46,7 +46,7 @@ body:
     id: env
     attributes:
       label: Environment
-      description: Node version, host (Decky / standalone Shelves Loader), OS.
-      placeholder: "e.g. Node 20, standalone loader, SteamOS"
+      description: Node version, host, OS.
+      placeholder: "e.g. Node 20, ShelvesHub, SteamOS"
     validations:
       required: false

@@ -4,7 +4,7 @@ import tsParser from "@typescript-eslint/parser";
 // false-positive friction. Stylistic-only rules (formatting, line length,
 // naming) are intentionally NOT added — they generate churn without catching
 // bugs. Tests are excluded from the lint surface. This is a types-only package
-// — the host runtime lives in the Shelves Loader, not here.
+// — the host runtime lives in each host's own project, not here.
 export default [
   {
     files: ["src/**/*.ts"],
