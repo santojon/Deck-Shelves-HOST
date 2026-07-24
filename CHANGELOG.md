@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`mainMenu` capability** — a new optional, additive `HostApi.mainMenu`
+  namespace (`registerEntry({ id, title, icon, route | onSelect })`) for hosts
+  that can place an entry in the Steam Main Menu (left rail). Navigational,
+  mirroring `qam`. Unlike the QAM tab, a host must show a Main Menu entry only
+  while it has content (at least one registered entry).
+- Clarified that the `qam` tab may be a first-class, always-present surface,
+  whereas `mainMenu` is content-conditional.
+
+Additive only — no breaking change; hosts and the bundle feature-detect
+(`host.qam?.…`, `host.mainMenu?.…`).
+
 ## [1.1.0] - 2026-07-05
 
 ### Added

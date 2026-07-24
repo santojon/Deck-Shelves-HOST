@@ -1,18 +1,19 @@
 /**
- * @deck-shelves/host — HostApi contract (v1.1.0).
+ * @deck-shelves/host — HostApi contract.
  *
  * The single source of truth for the boundary between a *host* and the Deck
  * Shelves bundle. Every host ships its own adapter (one per host), and every
  * adapter fulfils this shape, so the bundle's call sites depend only on it
  * and never on a specific host's UI library directly.
  *
- * Additive-only after 1.0.0. `qam` was added in 1.1.0 as an optional, additive
- * namespace (implemented by hosts that render their own Quick Access panels).
+ * Additive-only Optional UI-surface capabilities are additive
+ * namespaces a host implements *if it can* and the bundle feature-detects:
+ *   - `qam`      — a Quick Access Menu tab.
+ *   - `mainMenu` — an entry in the Steam Main Menu / left rail.
+ * The contract names no concrete host; a host may implement any, all, or none.
  *
  * Dependency-free by design (mirrors `@deck-shelves/api`): supporting data
- * types are inlined. Members annotated "reconciled in Batch 5" are placeholders
- * that get tightened against the plugin's `src/types.ts` / `runtime/platform.ts`
- * when the contract formally supersedes the two divergent in-repo copies.
+ * types are inlined.
  */
 
 export const HOST_API_VERSION = "1.1.0" as const;
@@ -141,7 +142,7 @@ export interface PlatformApi {
   checkCompatibility?(): boolean;
 }
 
-// ── QAM (Quick Access Menu) — added 1.1.0, optional/additive ────────────────
+// ── QAM (Quick Access Menu) — optional/additive ────────────────
 
 /** A dedicated panel + icon shown in the Steam Quick Access Menu. */
 export interface QamPanel {
@@ -156,15 +157,51 @@ export interface QamPanel {
 }
 
 export interface HostQam {
-  /** Register a QAM panel; returns an unregister function. */
+  /**
+   * Register a QAM panel; returns an unregister function. A host may keep its
+   * QAM tab visible at all times (a first-class presence), even before any
+   * panel is registered.
+   */
   registerPanel(panel: QamPanel): () => void;
+}
+
+// ── Main Menu (Steam left rail) — optional/additive ────────────
+
+/**
+ * An entry in the Steam Main Menu (the left navigation rail). Navigational by
+ * nature: it selects a route or runs a callback (unlike a QAM panel, which
+ * renders content in place).
+ */
+export interface MainMenuEntry {
+  /** Stable id — re-registering with the same id replaces the entry. */
+  id: string;
+  /** Label / accessible name. */
+  title: string;
+  /** Inline SVG markup (or a `data:` URI) used as the icon. */
+  icon: string;
+  /** Navigate to this registered route on selection… */
+  route?: string;
+  /** …or run this callback (exactly one of `route` / `onSelect` is required). */
+  onSelect?(): void;
+}
+
+export interface HostMainMenu {
+  /**
+   * Register a Main Menu entry; returns an unregister function. Unlike the QAM
+   * tab, a host MUST NOT inject or show a Main Menu entry unless there is
+   * content to show — i.e. only while at least one entry is registered. No
+   * entries → nothing added to the Main Menu.
+   */
+  registerEntry(entry: MainMenuEntry): () => void;
 }
 
 /**
  * What the host process provides to the Deck Shelves bundle. The bundle receives
  * this at startup as `window.__SHELVES_HOST__` and uses it to register itself,
- * invoke host methods, add routes, render Steam-native UI, and — where the
- * host supports it — add Quick Access Menu panels.
+ * invoke host methods, add routes, render Steam-native UI, and — where the host
+ * supports them — add optional surfaces (a Quick Access Menu tab, a Main Menu
+ * entry). Optional capabilities are feature-detected: `host.qam?.…`,
+ * `host.mainMenu?.…`.
  */
 export interface HostApi {
   readonly version: typeof HOST_API_VERSION;
@@ -176,6 +213,9 @@ export interface HostApi {
   readonly platform: PlatformApi;
   /** Optional so hosts without a QAM surface still satisfy the shape. */
   readonly qam?: HostQam;
+  /** Optional Main Menu (left-rail) surface; present only on hosts that
+   *  support it. Injected/shown only while it has content (see `HostMainMenu`). */
+  readonly mainMenu?: HostMainMenu;
 }
 
 /** Shape of the runtime global the host installs in the renderer. */
