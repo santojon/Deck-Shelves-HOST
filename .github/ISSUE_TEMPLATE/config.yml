@@ -3,9 +3,6 @@ contact_links:
   - name: Deck Shelves plugin
     url: https://github.com/santojon/Deck-Shelves
     about: Issues with the plugin itself (not the host contract) belong here.
-  - name: Shelves Loader
-    url: https://github.com/santojon/Shelves-Loader
-    about: Issues with the standalone loader daemon belong here.
   - name: Security vulnerability
     url: https://github.com/santojon/Deck-Shelves-HOST/security/advisories/new
     about: Report security issues privately via GitHub Security Advisories.
