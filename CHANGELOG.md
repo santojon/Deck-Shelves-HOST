@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Coexistence QAM surface.** A host with a native QAM tab may expose its panel
+  registration independently of the full `HostApi`, via `window.__SHELVES_QAM__`
+  (a `HostQam`). A bundle can register into it to populate that host's tab even
+  when the host is NOT the one it selected — i.e. when another loader owns the
+  home and `__SHELVES_HOST__` is intentionally left unset so host selection is not
+  disturbed. The surface takes no part in host selection. A companion
+  `window.__SHELVES_QAM_PENDING__` (`QamPanel[]`) makes registration
+  order-independent: a bundle that boots first pushes its panels there and the
+  host drains them on install.
+- **`QamPanel.content`.** Alongside the framework-agnostic `render(container)`, a
+  React-based host may accept a React node (or a zero-arg factory) via an optional
+  `content` (typed `unknown`, cast at the call site as with `HostUi`) — rendered
+  in the host's own React tree, so the bundle's context providers reach the panel.
+  Provide exactly one of `render` / `content`.
+- **`QamPanel.icon` and `QamPanel.render` are now optional.** A host with a
+  first-class, always-present tab uses its own icon when a panel omits one;
+  `render` is optional because `content` is the alternative.
+
+Additive only — no breaking change; hosts and the bundle feature-detect
+(`window.__SHELVES_QAM__?.…`, `panel.content ?? panel.render`).
+
 ## [1.1.1] - 2026-07-25
 
 ### Added

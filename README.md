@@ -37,6 +37,12 @@ added without touching the bundle.
 > Quick Access Menu tab — lives in that host's own project, not here. This
 > package is just the interface both sides agree on.
 
+> **Coexistence.** A host with a native QAM tab may also expose its panel
+> registration on `window.__SHELVES_QAM__` (a `HostQam`), independently of the
+> full `HostApi` — so a bundle can populate that host's tab even when *another*
+> host owns the home (and `__SHELVES_HOST__` is left unset). Both globals are
+> declared in the contract.
+
 It is **not** `@deck-shelves/api` — that package is the public *extension* API
 consumed by third-party plugins (`window.deckShelves`). This one is the
 host↔bundle contract, a different audience.
