@@ -150,10 +150,20 @@ export interface QamPanel {
   id: string;
   /** Label / accessible name. */
   title: string;
-  /** Inline SVG markup (or a `data:` URI) used as the icon. */
-  icon: string;
-  /** Render into the host-owned container; return an optional cleanup fn. */
-  render(container: HTMLElement): void | (() => void);
+  /** Inline SVG markup (or a `data:` URI) used as the icon. Optional: a host
+   *  with a first-class tab (a permanent presence with its own icon) falls back
+   *  to that icon when omitted. */
+  icon?: string;
+  /** Render into the host-owned container; return an optional cleanup fn.
+   *  Framework-agnostic — the way any host can accept a panel. Provide exactly
+   *  one of `render` / `content`. */
+  render?(container: HTMLElement): void | (() => void);
+  /** …or a React node (or a zero-arg factory returning one) that a React-based
+   *  host renders in its OWN React tree — no nested root, so the bundle's context
+   *  providers reach the panel. Typed `unknown` to keep the contract
+   *  dependency-free (cast at the call site, as with `HostUi`). Provide exactly
+   *  one of `render` / `content`. */
+  content?: unknown;
 }
 
 export interface HostQam {
@@ -202,6 +212,11 @@ export interface HostMainMenu {
  * supports them — add optional surfaces (a Quick Access Menu tab, a Main Menu
  * entry). Optional capabilities are feature-detected: `host.qam?.…`,
  * `host.mainMenu?.…`.
+ *
+ * In *coexistence* (another loader owns the home) a host leaves `__SHELVES_HOST__`
+ * unset so it does not disturb host selection, yet MAY still surface its own QAM
+ * tab: the bundle registers into it through the host-selection-neutral
+ * `window.__SHELVES_QAM__` (see the `Window` augmentation below).
  */
 export interface HostApi {
   readonly version: typeof HOST_API_VERSION;
@@ -225,5 +240,23 @@ declare global {
   // eslint-disable-next-line no-var
   interface Window {
     __SHELVES_HOST__?: ShelvesHostGlobal;
+    /**
+     * A host's QAM registration surface, exposed independently of the full
+     * `HostApi`. A host with a native QAM tab installs this even when it is NOT
+     * the bundle's selected host — i.e. in *coexistence*, where another loader
+     * owns the home and `__SHELVES_HOST__` is intentionally left unset so host
+     * selection is not disturbed. A bundle may register a panel here to populate
+     * that host's tab regardless of which host it selected; the surface takes no
+     * part in host selection. When the same host also owns the home this is the
+     * very same object as `__SHELVES_HOST__.qam`.
+     */
+    __SHELVES_QAM__?: HostQam;
+    /**
+     * Panels a bundle registered before `__SHELVES_QAM__` existed. Registration
+     * is order-independent: a bundle that boots first may push its panels here,
+     * and the host drains and clears this array the moment it installs
+     * `__SHELVES_QAM__`. Equivalent to calling `registerPanel` for each.
+     */
+    __SHELVES_QAM_PENDING__?: QamPanel[];
   }
 }
