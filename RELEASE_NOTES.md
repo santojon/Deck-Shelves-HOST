@@ -5,6 +5,8 @@ GitHub Release body at tag time.
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-08-23
+
 - **Coexistence-friendly QAM.** A host can surface its own Quick Access tab even
   when it isn't the host a bundle selected (another loader owns the home): the
   bundle registers into `window.__SHELVES_QAM__`, a host-selection-neutral surface,
