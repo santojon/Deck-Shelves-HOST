@@ -205,6 +205,23 @@ export interface HostMainMenu {
   registerEntry(entry: MainMenuEntry): () => void;
 }
 
+// ── Updates (self-install) — optional/additive ─────────────────
+
+/** Optional: a host that can obtain + apply plugin updates itself (no manual
+ *  file install). A loader that can only hand the user a file does NOT implement
+ *  this — the bundle then falls back to the manual download flow. */
+export interface HostUpdates {
+  /** True if this host can self-install (drives the button: "Install" vs "Download"). */
+  canSelfInstall(): boolean;
+  /** Obtain the release and swap it in, then reload. `assetUrl`/`assetName` point
+   *  at the bundle artifact the host injects (the IIFE). */
+  applyUpdate(release: {
+    version: string;
+    assetUrl?: string;
+    assetName?: string;
+  }): Promise<void>;
+}
+
 /**
  * What the host process provides to the Deck Shelves bundle. The bundle receives
  * this at startup as `window.__SHELVES_HOST__` and uses it to register itself,
@@ -243,6 +260,9 @@ export interface HostApi {
   /** Optional Main Menu (left-rail) surface; present only on hosts that
    *  support it. Injected/shown only while it has content (see `HostMainMenu`). */
   readonly mainMenu?: HostMainMenu;
+  /** Optional self-update surface; present only on hosts that can obtain and
+   *  apply an update themselves (see `HostUpdates`). */
+  readonly updates?: HostUpdates;
 }
 
 /** Shape of the runtime global the host installs in the renderer. */
