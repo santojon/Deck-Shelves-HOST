@@ -5,6 +5,12 @@ GitHub Release body at tag time.
 
 ## [Unreleased]
 
+- **React stack on the host.** A host can now expose its React / ReactDOM /
+  jsx-runtime (`HostApi.React` / `ReactDOM` / `jsx`), so a bundle running under a
+  *sole* host (no loader present) resolves React from the host instead of from
+  loader-published globals. Optional and feature-detected — a loader-backed host
+  omits them and the bundle uses the loader's own React globals.
+
 ## [1.2.0] - 2026-08-23
 
 - **Coexistence-friendly QAM.** A host can surface its own Quick Access tab even

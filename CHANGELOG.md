@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`HostApi.React` / `HostApi.ReactDOM` / `HostApi.jsx`.** Optional, additive
+  handles to the host's React stack, so a bundle's `react` / `react-dom` /
+  `jsx-runtime` shims can resolve React from the host (`__SHELVES_HOST__`) instead
+  of from loader-published globals — the path a *sole* host (no loader present)
+  needs, since no loader is there to publish them. Typed `unknown` and cast at the
+  call site, as with `HostUi`. A loader-backed host may omit them and let the
+  bundle fall back to the loader's own React globals.
+
 ## [1.2.0] - 2026-08-23
 
 ### Added

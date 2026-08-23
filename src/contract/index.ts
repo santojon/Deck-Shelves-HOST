@@ -223,6 +223,18 @@ export interface HostApi {
   readonly lifecycle: HostLifecycle;
   readonly rpc: HostRpc;
   readonly ui: HostUi;
+  /**
+   * Steam's React stack, exposed so a bundle's `react` / `react-dom` /
+   * `jsx-runtime` shims can resolve React from the host instead of from
+   * loader-published globals — the path a *sole* host (no loader) needs, since
+   * no loader is present to publish them. Kept dependency-free: cast to
+   * `React` / `ReactDOM` / the jsx-runtime at the call site, as with {@link HostUi}.
+   * Optional — a loader-backed host may omit them and let the bundle fall back to
+   * the loader's own React globals.
+   */
+  readonly React?: unknown;
+  readonly ReactDOM?: unknown;
+  readonly jsx?: unknown;
   readonly routes: HostRoutes;
   readonly notifications?: HostNotifications;
   readonly platform: PlatformApi;

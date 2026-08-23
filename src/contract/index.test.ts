@@ -61,4 +61,20 @@ describe("HostApi contract", () => {
     expect(typeof w.__SHELVES_QAM__.registerPanel).toBe("function");
     expect(w.__SHELVES_QAM_PENDING__).toHaveLength(1);
   });
+
+  it("accepts an optional React stack for sole-host bundles", () => {
+    // A sole host (no loader) exposes Steam's React stack so the bundle's
+    // react / react-dom / jsx-runtime shims resolve React from __SHELVES_HOST__
+    // rather than from loader-published globals. Kept dependency-free (unknown).
+    const withReact: Pick<HostApi, "React" | "ReactDOM" | "jsx"> = {
+      React: {} as unknown,
+      ReactDOM: {} as unknown,
+      jsx: {} as unknown,
+    };
+    expect(withReact.React).toBeDefined();
+    // All three are optional — a loader-backed host omits them and the bundle
+    // falls back to the loader's own React globals.
+    const withoutReact: Pick<HostApi, "React"> = {};
+    expect(withoutReact.React).toBeUndefined();
+  });
 });
