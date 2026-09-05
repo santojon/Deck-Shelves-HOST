@@ -16,6 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   needs, since no loader is there to publish them. Typed `unknown` and cast at the
   call site, as with `HostUi`. A loader-backed host may omit them and let the
   bundle fall back to the loader's own React globals.
+- **`HostApi.updates` (`HostUpdates`).** Optional, additive self-install
+  surface: `canSelfInstall()` tells the bundle whether this host can obtain and
+  apply an update itself (drives its update button: "Install" vs "Download"),
+  and `applyUpdate({ version, assetUrl?, assetName? })` does the actual
+  obtain-and-swap, expected to reload once done. A host without this surface
+  simply omits it — the bundle falls back to its existing manual-download flow.
 
 ## [1.2.0] - 2026-08-23
 

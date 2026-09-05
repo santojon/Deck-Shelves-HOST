@@ -10,6 +10,10 @@ GitHub Release body at tag time.
   *sole* host (no loader present) resolves React from the host instead of from
   loader-published globals. Optional and feature-detected — a loader-backed host
   omits them and the bundle uses the loader's own React globals.
+- **Self-install updates.** A host can now tell the bundle it can obtain and
+  apply its own updates (`HostApi.updates`), so the bundle's update button reads
+  "Install" instead of "Download" and hands the update off directly. Optional —
+  a host without this just gets the existing manual-download flow.
 
 ## [1.2.0] - 2026-08-23
 
