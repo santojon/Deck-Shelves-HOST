@@ -6,17 +6,27 @@
  * adapter fulfils this shape, so the bundle's call sites depend only on it
  * and never on a specific host's UI library directly.
  *
- * Additive-only Optional UI-surface capabilities are additive
- * namespaces a host implements *if it can* and the bundle feature-detects:
+ * Optional capabilities are additive members a host implements *if it can* and
+ * the bundle feature-detects:
  *   - `qam`      — a Quick Access Menu tab.
  *   - `mainMenu` — an entry in the Steam Main Menu / left rail.
+ *   - `updates`  — self-install of plugin updates (see `HostUpdates`).
+ *   - `React` / `ReactDOM` / `jsx` — the host's React stack, so the bundle's
+ *     react shims can resolve React from the host instead of a loader global.
  * The contract names no concrete host; a host may implement any, all, or none.
  *
  * Dependency-free by design (mirrors `@deck-shelves/api`): supporting data
  * types are inlined.
  */
 
-export const HOST_API_VERSION = "1.1.0" as const;
+/**
+ * Compatibility version of the contract SHAPE — independent of this package's
+ * npm release version. Bump semver here on shape changes: MINOR for additive,
+ * backward-compatible members (a new optional namespace / field); MAJOR on a
+ * breaking change. 1.2.0 added the optional `updates` namespace and the
+ * optional `React`/`ReactDOM`/`jsx` UI-surface members.
+ */
+export const HOST_API_VERSION = "1.2.0" as const;
 
 export interface PluginDescriptor {
   name: string;
