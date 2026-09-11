@@ -300,5 +300,17 @@ declare global {
      * `__SHELVES_QAM__`. Equivalent to calling `registerPanel` for each.
      */
     __SHELVES_QAM_PENDING__?: QamPanel[];
+    /**
+     * Tab-ownership handshake. A host stamps this with its owner kind (e.g.
+     * `"shelveshub"`) the moment its own Deck Shelves QAM tab is actually
+     * inserted into the strip — NOT when `__SHELVES_QAM__` is first created
+     * (that happens at boot, before any tab exists). A bundle running under a
+     * different loader that also renders its own native tab retracts it once
+     * this is set, so exactly one Deck Shelves tab survives and it is the
+     * host's. Because it is stamped only on real insertion, a host that never
+     * inserts leaves the bundle's own tab in place as the fallback rather than
+     * both vanishing. Unset means no host has claimed the tab.
+     */
+    __SHELVES_QAM_OWNER__?: string;
   }
 }
