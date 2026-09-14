@@ -5,6 +5,8 @@ GitHub Release body at tag time.
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-09-14
+
 - **React stack on the host.** A host can now expose its React / ReactDOM /
   jsx-runtime (`HostApi.React` / `ReactDOM` / `jsx`), so a bundle running under a
   *sole* host (no loader present) resolves React from the host instead of from
