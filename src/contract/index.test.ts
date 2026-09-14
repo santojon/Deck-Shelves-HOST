@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { HOST_API_VERSION, type HostApi, type QamPanel } from "./index";
+import { HOST_API_VERSION, type HostApi, type QamPanel, type HostUpdates, type MainMenuEntry } from "./index";
 
 describe("HostApi contract", () => {
   it("exposes a semver HOST_API_VERSION", () => {
@@ -60,5 +60,42 @@ describe("HostApi contract", () => {
     w.__SHELVES_QAM_PENDING__ = [{ id: "p", title: "Panel", content: null as unknown }];
     expect(typeof w.__SHELVES_QAM__.registerPanel).toBe("function");
     expect(w.__SHELVES_QAM_PENDING__).toHaveLength(1);
+  });
+
+  it("accepts an optional React stack for sole-host bundles", () => {
+    // A sole host (no loader) exposes Steam's React stack so the bundle's
+    // react / react-dom / jsx-runtime shims resolve React from __SHELVES_HOST__
+    // rather than from loader-published globals. Kept dependency-free (unknown).
+    const withReact: Pick<HostApi, "React" | "ReactDOM" | "jsx"> = {
+      React: {} as unknown,
+      ReactDOM: {} as unknown,
+      jsx: {} as unknown,
+    };
+    expect(withReact.React).toBeDefined();
+    // All three are optional — a loader-backed host omits them and the bundle
+    // falls back to the loader's own React globals.
+    const withoutReact: Pick<HostApi, "React"> = {};
+    expect(withoutReact.React).toBeUndefined();
+  });
+
+  it("accepts an optional self-install HostUpdates surface", async () => {
+    const updates: HostUpdates = {
+      canSelfInstall: () => true,
+      applyUpdate: async (release) => { void release; },
+    };
+    expect(updates.canSelfInstall()).toBe(true);
+    await expect(updates.applyUpdate({ version: "1.2.3" })).resolves.toBeUndefined();
+    // A host without this surface simply omits it — `updates` is optional.
+    const withoutUpdates: Pick<HostApi, "updates"> = {};
+    expect(withoutUpdates.updates).toBeUndefined();
+  });
+
+  it("accepts an optional Main Menu surface, entries requiring id/title/icon", () => {
+    const entry: MainMenuEntry = { id: "e", title: "Entry", icon: "<svg/>", route: "/deck-shelves/about" };
+    expect(entry.route).toBe("/deck-shelves/about");
+    // onSelect is the alternative to route — exactly one is expected, not enforced
+    // at the type level (documented, not structurally required either/or).
+    const viaCallback: MainMenuEntry = { id: "e2", title: "Entry 2", icon: "<svg/>", onSelect: () => {} };
+    expect(typeof viaCallback.onSelect).toBe("function");
   });
 });

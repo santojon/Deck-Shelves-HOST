@@ -6,17 +6,27 @@
  * adapter fulfils this shape, so the bundle's call sites depend only on it
  * and never on a specific host's UI library directly.
  *
- * Additive-only Optional UI-surface capabilities are additive
- * namespaces a host implements *if it can* and the bundle feature-detects:
+ * Optional capabilities are additive members a host implements *if it can* and
+ * the bundle feature-detects:
  *   - `qam`      — a Quick Access Menu tab.
  *   - `mainMenu` — an entry in the Steam Main Menu / left rail.
+ *   - `updates`  — self-install of plugin updates (see `HostUpdates`).
+ *   - `React` / `ReactDOM` / `jsx` — the host's React stack, so the bundle's
+ *     react shims can resolve React from the host instead of a loader global.
  * The contract names no concrete host; a host may implement any, all, or none.
  *
  * Dependency-free by design (mirrors `@deck-shelves/api`): supporting data
  * types are inlined.
  */
 
-export const HOST_API_VERSION = "1.1.0" as const;
+/**
+ * Compatibility version of the contract SHAPE — independent of this package's
+ * npm release version. Bump semver here on shape changes: MINOR for additive,
+ * backward-compatible members (a new optional namespace / field); MAJOR on a
+ * breaking change. 1.2.0 added the optional `updates` namespace and the
+ * optional `React`/`ReactDOM`/`jsx` UI-surface members.
+ */
+export const HOST_API_VERSION = "1.2.0" as const;
 
 export interface PluginDescriptor {
   name: string;
@@ -205,6 +215,23 @@ export interface HostMainMenu {
   registerEntry(entry: MainMenuEntry): () => void;
 }
 
+// ── Updates (self-install) — optional/additive ─────────────────
+
+/** Optional: a host that can obtain + apply plugin updates itself (no manual
+ *  file install). A loader that can only hand the user a file does NOT implement
+ *  this — the bundle then falls back to the manual download flow. */
+export interface HostUpdates {
+  /** True if this host can self-install (drives the button: "Install" vs "Download"). */
+  canSelfInstall(): boolean;
+  /** Obtain the release and swap it in, then reload. `assetUrl`/`assetName` point
+   *  at the bundle artifact the host injects (the IIFE). */
+  applyUpdate(release: {
+    version: string;
+    assetUrl?: string;
+    assetName?: string;
+  }): Promise<void>;
+}
+
 /**
  * What the host process provides to the Deck Shelves bundle. The bundle receives
  * this at startup as `window.__SHELVES_HOST__` and uses it to register itself,
@@ -223,6 +250,18 @@ export interface HostApi {
   readonly lifecycle: HostLifecycle;
   readonly rpc: HostRpc;
   readonly ui: HostUi;
+  /**
+   * Steam's React stack, exposed so a bundle's `react` / `react-dom` /
+   * `jsx-runtime` shims can resolve React from the host instead of from
+   * loader-published globals — the path a *sole* host (no loader) needs, since
+   * no loader is present to publish them. Kept dependency-free: cast to
+   * `React` / `ReactDOM` / the jsx-runtime at the call site, as with {@link HostUi}.
+   * Optional — a loader-backed host may omit them and let the bundle fall back to
+   * the loader's own React globals.
+   */
+  readonly React?: unknown;
+  readonly ReactDOM?: unknown;
+  readonly jsx?: unknown;
   readonly routes: HostRoutes;
   readonly notifications?: HostNotifications;
   readonly platform: PlatformApi;
@@ -231,6 +270,9 @@ export interface HostApi {
   /** Optional Main Menu (left-rail) surface; present only on hosts that
    *  support it. Injected/shown only while it has content (see `HostMainMenu`). */
   readonly mainMenu?: HostMainMenu;
+  /** Optional self-update surface; present only on hosts that can obtain and
+   *  apply an update themselves (see `HostUpdates`). */
+  readonly updates?: HostUpdates;
 }
 
 /** Shape of the runtime global the host installs in the renderer. */
@@ -258,5 +300,17 @@ declare global {
      * `__SHELVES_QAM__`. Equivalent to calling `registerPanel` for each.
      */
     __SHELVES_QAM_PENDING__?: QamPanel[];
+    /**
+     * Tab-ownership handshake. A host stamps this with its owner kind (e.g.
+     * `"shelveshub"`) the moment its own Deck Shelves QAM tab is actually
+     * inserted into the strip — NOT when `__SHELVES_QAM__` is first created
+     * (that happens at boot, before any tab exists). A bundle running under a
+     * different loader that also renders its own native tab retracts it once
+     * this is set, so exactly one Deck Shelves tab survives and it is the
+     * host's. Because it is stamped only on real insertion, a host that never
+     * inserts leaves the bundle's own tab in place as the fallback rather than
+     * both vanishing. Unset means no host has claimed the tab.
+     */
+    __SHELVES_QAM_OWNER__?: string;
   }
 }
