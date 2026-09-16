@@ -275,6 +275,61 @@ export interface HostApi {
   readonly updates?: HostUpdates;
 }
 
+/* ── Ownership & coexistence handshake ──────────────────────────────────────
+   Neutral vocabulary for WHICH host owns the renderer when more than one is
+   present. A host stamps these renderer globals; the bundle reads them to select
+   its host and to guard single-ownership. Owner values are OPAQUE strings — each
+   host names itself and the contract never hard-codes a host's or loader's name.
+   Only the injected neutral host both stamps force AND installs its runtime, so
+   presence — not any specific name — is what the bundle keys on. */
+
+/** An owner label is an opaque, host-chosen string; the contract never enumerates
+    concrete names (that would bake a host/loader identity into the boundary). */
+export type HostOwnerKind = string;
+
+/** Renderer global NAMES (augmented on `Window` below). */
+export const INJECTED_HOST_GLOBAL = "__SHELVES_HOST__" as const;
+export const FORCE_OWNER_GLOBAL = "__SHELVES_FORCE_OWNER__" as const;
+export const OWNER_GLOBAL = "__DECK_SHELVES_OWNER__" as const;
+
+function ownershipScope(): Record<string, unknown> {
+  const g = globalThis as unknown as { window?: Record<string, unknown> } & Record<string, unknown>;
+  return (g.window ?? g) as Record<string, unknown>;
+}
+function readOwnerString(name: string): string | null {
+  try {
+    const v = ownershipScope()[name];
+    return typeof v === "string" && v.length > 0 ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+/** The injected host runtime, or null when no neutral host is present. */
+export function getInjectedHost(): ShelvesHostGlobal | null {
+  try {
+    return (ownershipScope()[INJECTED_HOST_GLOBAL] ?? null) as ShelvesHostGlobal | null;
+  } catch {
+    return null;
+  }
+}
+/** The forced-owner label a host stamped, or null when none. */
+export function readForcedOwner(): string | null {
+  return readOwnerString(FORCE_OWNER_GLOBAL);
+}
+/** The renderer's single-owner claim, or null when still unclaimed. */
+export function readOwner(): string | null {
+  return readOwnerString(OWNER_GLOBAL);
+}
+/** True when a host stamped a forced-owner claim. Only the injected neutral host
+    does this, so `isForcedOwner() && getInjectedHost()` means "the injected host
+    was forced to own" (cooperative ownership) without naming any host: the loader
+    keeps the renderer + its other plugins, and the bundle binds to the injected
+    host — waiting via {@link getInjectedHost} if the loader booted it first. */
+export function isForcedOwner(): boolean {
+  return readForcedOwner() != null;
+}
+
 /** Shape of the runtime global the host installs in the renderer. */
 export type ShelvesHostGlobal = HostApi;
 
@@ -312,5 +367,21 @@ declare global {
      * both vanishing. Unset means no host has claimed the tab.
      */
     __SHELVES_QAM_OWNER__?: string;
+    /**
+     * Forced-owner handshake. A host stamps its own (opaque) owner label here to
+     * claim the renderer even alongside a loader (cooperative ownership): the
+     * loader keeps owning the renderer and its other plugins, but the bundle binds
+     * to the injected host (`__SHELVES_HOST__`) — waiting for it to appear if the
+     * loader booted the bundle first — instead of the loader that launched it.
+     * Only the injected host stamps this, so presence (not the label's value) is
+     * what the bundle keys on.
+     */
+    __SHELVES_FORCE_OWNER__?: HostOwnerKind;
+    /**
+     * The renderer's single-owner claim. The first host/bundle to claim writes
+     * its kind; a second instance reads it and stands down (no home patch, no
+     * settings writes) so there is exactly one injector and one writer.
+     */
+    __DECK_SHELVES_OWNER__?: HostOwnerKind;
   }
 }
