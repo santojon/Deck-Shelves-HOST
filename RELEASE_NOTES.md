@@ -5,6 +5,8 @@ GitHub Release body at tag time.
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-09-16
+
 - **Cooperative ownership.** A host can now claim a bundle's renderer
   alongside a loader instead of only in its place — the loader keeps its
   other plugins running as usual, while a bundle that opts in binds
