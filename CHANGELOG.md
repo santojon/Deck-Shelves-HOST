@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Cooperative ownership handshake.** New `HostOwnerKind`, the
+  `INJECTED_HOST_GLOBAL` / `FORCE_OWNER_GLOBAL` / `OWNER_GLOBAL` renderer-global
+  name constants, and `getInjectedHost()` / `readForcedOwner()` / `readOwner()`
+  / `isForcedOwner()` helpers. Lets a host claim a bundle's renderer *alongside*
+  a loader rather than instead of it: the loader keeps owning the renderer and
+  its other plugins, while the bundle specifically binds to the injected host
+  (`getInjectedHost()`, waiting for it to appear if the loader booted the
+  bundle first). Owner values are opaque, host-chosen strings — the contract
+  never hard-codes any host's or loader's name; only the injected host stamps
+  the forced-owner claim, so presence (not the label's value) is what a bundle
+  keys on.
+
 ## [1.3.0] - 2026-09-14
 
 ### Added
