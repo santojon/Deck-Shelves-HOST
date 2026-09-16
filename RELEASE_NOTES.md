@@ -5,6 +5,11 @@ GitHub Release body at tag time.
 
 ## [Unreleased]
 
+- **Cooperative ownership.** A host can now claim a bundle's renderer
+  alongside a loader instead of only in its place — the loader keeps its
+  other plugins running as usual, while a bundle that opts in binds
+  specifically to that host.
+
 ## [1.3.0] - 2026-09-14
 
 - **React stack on the host.** A host can now expose its React / ReactDOM /
