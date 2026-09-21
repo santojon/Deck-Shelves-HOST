@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { HOST_API_VERSION, type HostApi, type QamPanel, type HostUpdates, type MainMenuEntry } from "./index";
+import { HOST_API_VERSION, OWNER_METADATA_GLOBAL, type HostApi, type QamPanel, type HostUpdates, type MainMenuEntry, type HostOwnerMetadata } from "./index";
 
 describe("HostApi contract", () => {
   it("exposes a semver HOST_API_VERSION", () => {
@@ -97,5 +97,11 @@ describe("HostApi contract", () => {
     // at the type level (documented, not structurally required either/or).
     const viaCallback: MainMenuEntry = { id: "e2", title: "Entry 2", icon: "<svg/>", onSelect: () => {} };
     expect(typeof viaCallback.onSelect).toBe("function");
+  });
+
+  it("defines the version-aware renderer ownership metadata", () => {
+    const metadata: HostOwnerMetadata = { host: "shelveshub", dsVersion: "3.3.0" };
+    expect(OWNER_METADATA_GLOBAL).toBe("__DECK_SHELVES_OWNER_META__");
+    expect(metadata).toEqual({ host: "shelveshub", dsVersion: "3.3.0" });
   });
 });
