@@ -11,7 +11,7 @@
 [![npm version](https://img.shields.io/npm/v/@deck-shelves/host?logo=npm&color=cb3837)](https://www.npmjs.com/package/@deck-shelves/host)
 [![npm downloads](https://img.shields.io/npm/dt/@deck-shelves/host?label=downloads&logo=npm&color=blue)](https://www.npmjs.com/package/@deck-shelves/host)
 [![npm monthly](https://img.shields.io/npm/dm/@deck-shelves/host?label=monthly&logo=npm&color=blue)](https://www.npmjs.com/package/@deck-shelves/host)
-[![Tests](https://img.shields.io/badge/tests-7%20passed-brightgreen?logo=vitest&logoColor=white)](src/contract/index.test.ts)
+[![Tests](https://img.shields.io/badge/tests-8%20passed-brightgreen?logo=vitest&logoColor=white)](src/contract/index.test.ts)
 [![Types](https://img.shields.io/npm/types/@deck-shelves/host?logo=typescript&logoColor=white)](src/contract/index.ts)
 [![Bundle size](https://img.shields.io/bundlephobia/minzip/@deck-shelves/host?label=minzip&color=blue)](https://bundlephobia.com/package/@deck-shelves/host)
 [![License](https://img.shields.io/npm/l/@deck-shelves/host?color=blue)](LICENSE)

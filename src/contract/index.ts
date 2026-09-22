@@ -291,6 +291,13 @@ export type HostOwnerKind = string;
 export const INJECTED_HOST_GLOBAL = "__SHELVES_HOST__" as const;
 export const FORCE_OWNER_GLOBAL = "__SHELVES_FORCE_OWNER__" as const;
 export const OWNER_GLOBAL = "__DECK_SHELVES_OWNER__" as const;
+export const OWNER_METADATA_GLOBAL = "__DECK_SHELVES_OWNER_META__" as const;
+
+/** Version identity published by the bundle that currently owns the renderer. */
+export interface HostOwnerMetadata {
+  host: HostOwnerKind;
+  dsVersion: string;
+}
 
 function ownershipScope(): Record<string, unknown> {
   const g = globalThis as unknown as { window?: Record<string, unknown> } & Record<string, unknown>;
@@ -383,5 +390,7 @@ declare global {
      * settings writes) so there is exactly one injector and one writer.
      */
     __DECK_SHELVES_OWNER__?: HostOwnerKind;
+    /** Version identity of the bundle that currently owns the renderer. */
+    __DECK_SHELVES_OWNER_META__?: HostOwnerMetadata;
   }
 }
