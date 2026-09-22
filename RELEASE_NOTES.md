@@ -5,6 +5,10 @@ GitHub Release body at tag time.
 
 ## [Unreleased]
 
+- **Version-aware ownership tracking.** The renderer-ownership handshake
+  between a bundle and its host now also carries a version identity, making
+  it possible to tell mismatched host/bundle versions apart.
+
 ## [1.3.1] - 2026-09-16
 
 - **Cooperative ownership.** A host can now claim a bundle's renderer

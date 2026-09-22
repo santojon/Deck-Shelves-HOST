@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Version-aware ownership metadata.** New `OWNER_METADATA_GLOBAL`
+  (`__DECK_SHELVES_OWNER_META__`) and the `HostOwnerMetadata` interface
+  (`{ host, dsVersion }`). Lets the bundle that currently owns the renderer
+  publish which host it's running under and which version it is, alongside
+  the existing opaque ownership handshake (`readOwner()` / `isForcedOwner()`).
+
 ## [1.3.1] - 2026-09-16
 
 ### Added
