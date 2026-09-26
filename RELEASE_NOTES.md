@@ -5,6 +5,8 @@ GitHub Release body at tag time.
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-09-26
+
 - **Clean hot-swap teardown.** A host can now call `teardown()` to dispose a
   bundle instance itself before swapping a new one in, instead of leaving that
   entirely up to the bundle's own convention — closes the class of bug where
