@@ -5,6 +5,15 @@ GitHub Release body at tag time.
 
 ## [Unreleased]
 
+- **Clean hot-swap teardown.** A host can now call `teardown()` to dispose a
+  bundle instance itself before swapping a new one in, instead of leaving that
+  entirely up to the bundle's own convention — closes the class of bug where
+  two instances of the same bundle end up alive at once after an in-place
+  update.
+- **Host handshake.** A bundle can now ask its host who it is, which contract
+  version it implements, and what it supports, in one call (`handshake()`)
+  instead of checking each capability separately.
+
 ## [1.3.2] - 2026-09-22
 
 - **Version-aware ownership tracking.** The renderer-ownership handshake

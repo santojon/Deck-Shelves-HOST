@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`HostLifecycle.teardown?(): number`.** Optional, host-callable disposal of
+  the current bundle instance: runs every handler registered via `onUnmount`
+  once, then clears them, and returns how many ran. Lets a host that hot-swaps
+  a new bundle in place (re-evaluating the same renderer without a full
+  reload) dispose the outgoing instance itself, rather than relying on the
+  bundle's own ad-hoc convention to notice and self-teardown — the two
+  instances-alive-at-once class of bug this closes. Feature-detected; absent
+  on a host that always reloads instead of hot-swapping.
+- **`HostApi.handshake?(): HostHandshake`.** Optional identification surface —
+  `{ hostKind, hostVersion, hostApiVersion, capabilities }` — so a bundle can
+  read who's hosting it, which contract version it implements, and a flat map
+  of feature flags (e.g. `{ teardown: true, selfUpdate: true, nativeQam: true
+  }`) in one call instead of feature-detecting each member of `HostApi`
+  individually. `hostKind` stays an opaque, host-chosen label, same as the
+  existing ownership handshake — the contract still names no host.
+
 ## [1.3.2] - 2026-09-22
 
 ### Added
