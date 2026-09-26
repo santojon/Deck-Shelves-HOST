@@ -42,6 +42,14 @@ export interface HostLifecycle {
   register(plugin: PluginDescriptor): Disposable;
   onMount(cb: () => void): void;
   onUnmount(cb: () => void): void;
+  /**
+   * Dispose the CURRENT bundle instance: runs every `onUnmount` handler once and
+   * clears them. The host calls this before it hot-swaps a new bundle in place, so
+   * two instances never both own the Home. Optional (feature-detected) — a bundle
+   * needing clean re-eval should register real teardown in `onUnmount`.
+   * Returns the number of handlers run.
+   */
+  teardown?(): number;
 }
 
 /** Generic RPC channel into the host backend. Each host routes it to the
@@ -273,6 +281,23 @@ export interface HostApi {
   /** Optional self-update surface; present only on hosts that can obtain and
    *  apply an update themselves (see `HostUpdates`). */
   readonly updates?: HostUpdates;
+  /** Optional handshake: identifies the host and the capabilities it implements,
+   *  so a bundle can adapt (and skip feature-detecting each member). Present on
+   *  hosts that support it; absent hosts are read via direct feature detection. */
+  handshake?(): HostHandshake;
+}
+
+/** What {@link HostApi.handshake} reports: who is hosting, its versions, and a
+ *  flat map of capability flags the bundle can branch on. `hostKind` is an opaque
+ *  host-chosen label (see {@link HostOwnerKind}); the contract names no host. */
+export interface HostHandshake {
+  readonly hostKind: HostOwnerKind;
+  /** The host's own product version (e.g. the daemon version). */
+  readonly hostVersion: string;
+  /** The contract version the host implements ({@link HOST_API_VERSION}). */
+  readonly hostApiVersion: string;
+  /** Feature flags, e.g. `{ teardown: true, selfUpdate: true, nativeQam: true }`. */
+  readonly capabilities: Readonly<Record<string, boolean>>;
 }
 
 /* ── Ownership & coexistence handshake ──────────────────────────────────────
