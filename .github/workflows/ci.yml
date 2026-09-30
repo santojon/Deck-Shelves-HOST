@@ -48,6 +48,9 @@ jobs:
       - name: Build (contract + runtime)
         run: pnpm run build
 
+      - name: API surface guard (shape change requires a HOST_API_VERSION bump)
+        run: node scripts/check-api.mjs check
+
       - name: Pack tarball
         run: pnpm pack
 

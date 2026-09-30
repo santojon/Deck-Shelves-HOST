@@ -47,6 +47,7 @@ Windows**.
 ```
 src/contract/index.ts       Public entry: HOST_API_VERSION + HostApi types
 src/contract/index.test.ts  Vitest suite for the contract shape
+src/contract/index.api.md   Recorded type-surface snapshot (generated; `api:update`)
 tsup.config.ts              Dual ESM + CJS + .d.ts build config
 eslint.config.js            Lint rules (flat config)
 vitest.config.ts            Test runner config
@@ -76,7 +77,21 @@ Run `pnpm run lint:fix` to auto-fix what's fixable.
 | `pnpm run lint`         | ESLint over `src/`                                   |
 | `pnpm run test`         | Vitest (run mode)                                   |
 | `pnpm run check`        | typecheck + lint + test (the pre-PR gate)           |
-| `pnpm run release:dry`  | clean → check → build → `pnpm pack --dry-run`       |
+| `pnpm run api:check`    | build → fail if the type surface changed without a `HOST_API_VERSION` bump |
+| `pnpm run api:update`   | build → record the current type surface in `src/contract/index.api.md` |
+| `pnpm run release:dry`  | clean → check → build → api:check → `pnpm pack --dry-run` |
+
+### Changing the contract shape
+
+`HOST_API_VERSION` (the compatibility version of the SHAPE) and the npm/tag version
+are separate axes: the package version bumps on every release, but the shape version
+moves **by hand** only when the exported types change. To keep the two from drifting,
+`api:check` (run in CI and by `release:*`) compares the published type surface against
+the committed snapshot `src/contract/index.api.md` and fails if it changed while
+`HOST_API_VERSION` did not. So when you add or change an exported type:
+
+1. Bump `HOST_API_VERSION` in `src/contract/index.ts` (additive → MINOR, breaking → MAJOR).
+2. Run `pnpm run api:update` and commit the refreshed `src/contract/index.api.md`.
 
 ## Submitting Changes
 

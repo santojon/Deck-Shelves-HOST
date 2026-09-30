@@ -32,12 +32,14 @@
     "lint:fix": "eslint --fix \"src/**/*.ts\"",
     "test": "vitest run",
     "test:watch": "vitest",
+    "api:check": "pnpm run build && node scripts/check-api.mjs check",
+    "api:update": "pnpm run build && node scripts/check-api.mjs update",
     "check": "pnpm run typecheck && pnpm run lint && pnpm run test",
     "dev:check": "pnpm run check",
     "clean": "node scripts/clean.mjs",
-    "release:dry": "pnpm run clean && pnpm run check && pnpm run build && pnpm pack --dry-run",
-    "release:local": "pnpm run clean && pnpm run check && pnpm run build && pnpm pack",
-    "prepublishOnly": "pnpm run clean && pnpm run check && pnpm run build"
+    "release:dry": "pnpm run clean && pnpm run check && pnpm run build && node scripts/check-api.mjs check && pnpm pack --dry-run",
+    "release:local": "pnpm run clean && pnpm run check && pnpm run build && node scripts/check-api.mjs check && pnpm pack",
+    "prepublishOnly": "pnpm run clean && pnpm run check && pnpm run build && node scripts/check-api.mjs check"
   },
   "keywords": [
     "deck-shelves",
