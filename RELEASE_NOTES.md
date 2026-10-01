@@ -5,6 +5,8 @@ GitHub Release body at tag time.
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-10-01
+
 - **Route patching is now part of the typed contract.** A host that lets the bundle
   patch an existing route in place — to wrap the Home and inject shelves — now exposes
   it through the documented `routes.addPatch` / `removePatch` surface, and the reported
