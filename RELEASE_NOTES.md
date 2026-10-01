@@ -5,6 +5,12 @@ GitHub Release body at tag time.
 
 ## [Unreleased]
 
+- **Route patching is now part of the typed contract.** A host that lets the bundle
+  patch an existing route in place — to wrap the Home and inject shelves — now exposes
+  it through the documented `routes.addPatch` / `removePatch` surface, and the reported
+  contract version moves to `1.3.0`. Additive: bundles built against the previous
+  contract keep working unchanged.
+
 ## [1.4.0] - 2026-09-26
 
 - **Clean hot-swap teardown.** A host can now call `teardown()` to dispose a

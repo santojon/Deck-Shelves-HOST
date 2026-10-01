@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Route-patch surface (`HostRoutes.addPatch?` / `removePatch?`, `RoutePatch`).**
+  Documents the optional route-patch members a host exposes so a bundle can patch
+  an existing route in place (e.g. wrap the Home to inject shelves) rather than only
+  registering new full-page routes. `RoutePatch` is `(props) => { children? } | void`
+  — it receives a shallow copy of the route's props and returns a partial override.
+  Additive and feature-detected; a host below `1.3.0` simply omits them.
+
+### Changed
+
+- **`HOST_API_VERSION` → `1.3.0`.** The contract-shape version catches up to the
+  additive members published since the literal last moved (`1.2.0`): the
+  cooperative-ownership handshake globals and metadata, `handshake()`,
+  `lifecycle.teardown`, and now the route-patch surface. Additive-only — a bundle
+  built against `1.2.0` runs unchanged.
+
 ## [1.4.0] - 2026-09-26
 
 ### Added

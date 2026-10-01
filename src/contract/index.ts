@@ -24,9 +24,11 @@
  * npm release version. Bump semver here on shape changes: MINOR for additive,
  * backward-compatible members (a new optional namespace / field); MAJOR on a
  * breaking change. 1.2.0 added the optional `updates` namespace and the
- * optional `React`/`ReactDOM`/`jsx` UI-surface members.
+ * optional `React`/`ReactDOM`/`jsx` UI-surface members. 1.3.0 added the optional
+ * `api.handshake()` + `HostHandshake`, `lifecycle.teardown()`, and the
+ * `routes.addPatch`/`removePatch` route-patch members.
  */
-export const HOST_API_VERSION = "1.2.0" as const;
+export const HOST_API_VERSION = "1.3.0" as const;
 
 export interface PluginDescriptor {
   name: string;
@@ -59,9 +61,29 @@ export interface HostRpc {
   call<Req = unknown, Res = unknown>(method: string, args?: Req): Promise<Res>;
 }
 
+/**
+ * Transforms an existing route's props. Receives a shallow copy of the route's
+ * props and returns a partial override (today only `children` is honored); a
+ * missing/void return leaves the route untouched.
+ */
+export type RoutePatch = (props: {
+  path?: string;
+  children?: unknown;
+  [key: string]: unknown;
+}) => { children?: unknown } | void;
+
 export interface HostRoutes {
   /** Register a full-page route; returns a disposer that removes it. */
   register(path: string, component: () => unknown): Disposable;
+  /**
+   * Patch an existing route (the host's own or a coexisting loader's) in place —
+   * e.g. wrap the Home to inject shelves. Returns the same `patch` so the caller
+   * can pair it with `removePatch`. Optional (feature-detected): hosts on a
+   * contract below 1.3.0 do not implement it.
+   */
+  addPatch?(path: string, patch: RoutePatch): RoutePatch;
+  /** Remove a patch previously added with {@link addPatch}. Optional. */
+  removePatch?(path: string, patch: RoutePatch): RoutePatch;
 }
 
 export interface ToastOptions {
@@ -366,7 +388,6 @@ export function isForcedOwner(): boolean {
 export type ShelvesHostGlobal = HostApi;
 
 declare global {
-  // eslint-disable-next-line no-var
   interface Window {
     __SHELVES_HOST__?: ShelvesHostGlobal;
     /**
