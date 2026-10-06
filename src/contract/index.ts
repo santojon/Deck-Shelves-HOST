@@ -28,7 +28,7 @@
  * `api.handshake()` + `HostHandshake`, `lifecycle.teardown()`, and the
  * `routes.addPatch`/`removePatch` route-patch members.
  */
-export const HOST_API_VERSION = "1.3.0" as const;
+export const HOST_API_VERSION = "1.4.0" as const;
 
 export interface PluginDescriptor {
   name: string;
@@ -318,8 +318,37 @@ export interface HostHandshake {
   readonly hostVersion: string;
   /** The contract version the host implements ({@link HOST_API_VERSION}). */
   readonly hostApiVersion: string;
-  /** Feature flags, e.g. `{ teardown: true, selfUpdate: true, nativeQam: true }`. */
+  /** Feature flags the bundle branches on. Known optional flags (all default false
+   *  when absent): `teardown`, `selfUpdate`, `nativeQam`, `coexist`, `pointerInput`
+   *  (host forwards pointer events), `xr` (host runs in an XR/headset session),
+   *  `coopBundle` (host can run its OWN bundle in cooperative mode). */
   readonly capabilities: Readonly<Record<string, boolean>>;
+  /** Optional device identity, from the host's own detection, so the bundle need not
+   *  guess. Additive (hosts that predate it omit it) — the bundle falls back to its
+   *  own detection when absent. */
+  readonly device?: HostDevice;
+  /** Optional version of the Deck Shelves bundle this host carries/injects. Lets a
+   *  cooperative setup compare the loader copy against the host's copy. */
+  readonly bundleVersion?: string;
+}
+
+/** Coarse device family. OPAQUE/extensible — the bundle treats an unknown value as
+ *  `"unknown"` and never infers a family from CPU architecture alone. */
+export type HostDeviceKind =
+  | "deck"
+  | "machine"
+  | "frame"
+  | "desktop"
+  | "handheld-arm"
+  | "unknown";
+
+/** Device identity reported in {@link HostHandshake.device}. `arch` is the host's
+ *  CPU architecture (e.g. `"x86_64"`, `"aarch64"`); `model` is a free-text label
+ *  (device-tree model / DMI product) when the host can read one. */
+export interface HostDevice {
+  readonly kind: HostDeviceKind;
+  readonly arch: string;
+  readonly model?: string | null;
 }
 
 /* ── Ownership & coexistence handshake ──────────────────────────────────────
