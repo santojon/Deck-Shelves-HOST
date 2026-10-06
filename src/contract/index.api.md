@@ -8,7 +8,7 @@ additive or breaking contract change can never ship while the compatibility
 version stays put. After an intended shape change: bump `HOST_API_VERSION`,
 then run `pnpm run api:update` and commit this file.
 
-HOST_API_VERSION: 1.3.0
+HOST_API_VERSION: 1.4.0
 
 ```ts
 declare const HOST_API_VERSION: "<VERSION>";
@@ -162,6 +162,14 @@ interface HostHandshake {
     readonly hostVersion: string;
     readonly hostApiVersion: string;
     readonly capabilities: Readonly<Record<string, boolean>>;
+    readonly device?: HostDevice;
+    readonly bundleVersion?: string;
+}
+type HostDeviceKind = "deck" | "machine" | "frame" | "desktop" | "handheld-arm" | "unknown";
+interface HostDevice {
+    readonly kind: HostDeviceKind;
+    readonly arch: string;
+    readonly model?: string | null;
 }
 type HostOwnerKind = string;
 declare const INJECTED_HOST_GLOBAL: "__SHELVES_HOST__";
@@ -188,5 +196,5 @@ declare global {
         __DECK_SHELVES_OWNER_META__?: HostOwnerMetadata;
     }
 }
-export { type Disposable, FORCE_OWNER_GLOBAL, HOST_API_VERSION, type HostApi, type HostHandshake, type HostLifecycle, type HostMainMenu, type HostNotifications, type HostOwnerKind, type HostOwnerMetadata, type HostQam, type HostRoutes, type HostRpc, type HostUi, type HostUpdates, INJECTED_HOST_GLOBAL, type MainMenuEntry, OWNER_GLOBAL, OWNER_METADATA_GLOBAL, type PlatformApi, type PlatformAppMeta, type PlatformCollection, type PlatformTab, type PluginDescriptor, type QamPanel, type RoutePatch, type ShelfSource, type ShelvesHostGlobal, type ToastOptions, getInjectedHost, isForcedOwner, readForcedOwner, readOwner };
+export { type Disposable, FORCE_OWNER_GLOBAL, HOST_API_VERSION, type HostApi, type HostDevice, type HostDeviceKind, type HostHandshake, type HostLifecycle, type HostMainMenu, type HostNotifications, type HostOwnerKind, type HostOwnerMetadata, type HostQam, type HostRoutes, type HostRpc, type HostUi, type HostUpdates, INJECTED_HOST_GLOBAL, type MainMenuEntry, OWNER_GLOBAL, OWNER_METADATA_GLOBAL, type PlatformApi, type PlatformAppMeta, type PlatformCollection, type PlatformTab, type PluginDescriptor, type QamPanel, type RoutePatch, type ShelfSource, type ShelvesHostGlobal, type ToastOptions, getInjectedHost, isForcedOwner, readForcedOwner, readOwner };
 ```

@@ -5,6 +5,11 @@ GitHub Release body at tag time.
 
 ## [Unreleased]
 
+- **Handshake now carries device + bundle info (contract `1.4.0`).** A host can report its device
+  `{ kind, arch, model }` and the Deck Shelves bundle version it injects, and the `pointerInput` /
+  `xr` / `coopBundle` capability flags are documented. All additive and feature-detected — a bundle
+  built against `1.3.0` is unaffected.
+
 ## [1.4.1] - 2026-10-01
 
 - **Route patching is now part of the typed contract.** A host that lets the bundle

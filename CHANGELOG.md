@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Device identity + bundle version in the handshake (`HostHandshake.device`,
+  `HostHandshake.bundleVersion`; new `HostDevice`, `HostDeviceKind`).** A host may report a coarse
+  device `{ kind, arch, model }` from its own detection so the bundle doesn't have to guess (it
+  falls back to its own detection when the field is absent), and the Deck Shelves bundle version it
+  carries/injects (so a cooperative setup can compare the loader copy against the host copy).
+  `HostDeviceKind` is `deck | machine | frame | desktop | handheld-arm | unknown`, treated as opaque
+  (never infer a family from CPU arch alone). Additive and feature-detected.
+- **Documented capability flags** `pointerInput`, `xr` and `coopBundle` on
+  `HostHandshake.capabilities` (all default `false` when absent).
+
+### Changed
+
+- **`HOST_API_VERSION` → `1.4.0`.** The contract-shape version moves for the additive
+  `HostHandshake.device` / `bundleVersion` members above. Additive-only — a bundle built against
+  `1.3.0` runs unchanged.
+
 ## [1.4.1] - 2026-10-01
 
 ### Added
