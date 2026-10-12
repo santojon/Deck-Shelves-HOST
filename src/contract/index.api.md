@@ -8,7 +8,7 @@ additive or breaking contract change can never ship while the compatibility
 version stays put. After an intended shape change: bump `HOST_API_VERSION`,
 then run `pnpm run api:update` and commit this file.
 
-HOST_API_VERSION: 1.4.0
+HOST_API_VERSION: 1.5.0
 
 ```ts
 declare const HOST_API_VERSION: "<VERSION>";
@@ -184,6 +184,27 @@ declare function getInjectedHost(): ShelvesHostGlobal | null;
 declare function readForcedOwner(): string | null;
 declare function readOwner(): string | null;
 declare function isForcedOwner(): boolean;
+declare const COOP_DEFER_GLOBAL: "__DECK_SHELVES_DEFER_TO_HOST__";
+declare const COOP_HOST_BUNDLE_BOOTED_GLOBAL: "__DECK_SHELVES_HOST_BUNDLE_BOOTED__";
+declare const COOP_OFFER_KEY: "shelveshub-coop-bundle";
+interface CoopDeferSignal {
+    readonly loaderVersion: string;
+    readonly hostBundleVersion: string;
+    readonly at: number;
+}
+interface CoopOffer {
+    readonly bundleVersion: string;
+    readonly hostVersion?: string;
+    readonly at?: number;
+    readonly fallbackAt?: number;
+}
+declare function compareVersions(a: string, b: string): number;
+declare function offeredBundle(hs: HostHandshake | null | undefined): string | null;
+declare function shouldDeferToHost(opts: {
+    forced: boolean;
+    handshake: HostHandshake | null | undefined;
+    ownVersion: string;
+}): boolean;
 type ShelvesHostGlobal = HostApi;
 declare global {
     interface Window {
@@ -194,7 +215,9 @@ declare global {
         __SHELVES_FORCE_OWNER__?: HostOwnerKind;
         __DECK_SHELVES_OWNER__?: HostOwnerKind;
         __DECK_SHELVES_OWNER_META__?: HostOwnerMetadata;
+        __DECK_SHELVES_DEFER_TO_HOST__?: CoopDeferSignal;
+        __DECK_SHELVES_HOST_BUNDLE_BOOTED__?: string;
     }
 }
-export { type Disposable, FORCE_OWNER_GLOBAL, HOST_API_VERSION, type HostApi, type HostDevice, type HostDeviceKind, type HostHandshake, type HostLifecycle, type HostMainMenu, type HostNotifications, type HostOwnerKind, type HostOwnerMetadata, type HostQam, type HostRoutes, type HostRpc, type HostUi, type HostUpdates, INJECTED_HOST_GLOBAL, type MainMenuEntry, OWNER_GLOBAL, OWNER_METADATA_GLOBAL, type PlatformApi, type PlatformAppMeta, type PlatformCollection, type PlatformTab, type PluginDescriptor, type QamPanel, type RoutePatch, type ShelfSource, type ShelvesHostGlobal, type ToastOptions, getInjectedHost, isForcedOwner, readForcedOwner, readOwner };
+export { COOP_DEFER_GLOBAL, COOP_HOST_BUNDLE_BOOTED_GLOBAL, COOP_OFFER_KEY, type CoopDeferSignal, type CoopOffer, type Disposable, FORCE_OWNER_GLOBAL, HOST_API_VERSION, type HostApi, type HostDevice, type HostDeviceKind, type HostHandshake, type HostLifecycle, type HostMainMenu, type HostNotifications, type HostOwnerKind, type HostOwnerMetadata, type HostQam, type HostRoutes, type HostRpc, type HostUi, type HostUpdates, INJECTED_HOST_GLOBAL, type MainMenuEntry, OWNER_GLOBAL, OWNER_METADATA_GLOBAL, type PlatformApi, type PlatformAppMeta, type PlatformCollection, type PlatformTab, type PluginDescriptor, type QamPanel, type RoutePatch, type ShelfSource, type ShelvesHostGlobal, type ToastOptions, compareVersions, getInjectedHost, isForcedOwner, offeredBundle, readForcedOwner, readOwner, shouldDeferToHost };
 ```

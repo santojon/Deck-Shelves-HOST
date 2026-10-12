@@ -28,7 +28,7 @@
  * `api.handshake()` + `HostHandshake`, `lifecycle.teardown()`, and the
  * `routes.addPatch`/`removePatch` route-patch members.
  */
-export const HOST_API_VERSION = "1.4.0" as const;
+export const HOST_API_VERSION = "1.5.0" as const;
 
 export interface PluginDescriptor {
   name: string;
@@ -413,6 +413,68 @@ export function isForcedOwner(): boolean {
   return readForcedOwner() != null;
 }
 
+/* ── Cooperative bundle hand-over ───────────────────────────────────────────
+   A host that advertises the `coopBundle` capability (and a `bundleVersion`) may
+   run its OWN copy of the bundle while a loader also launched one. The protocol
+   between the two copies is a few renderer globals plus one storage key; the
+   definitions live here so both sides (and a host written in another language,
+   mirroring the literals) agree. The boot policy itself — fallback timers, what
+   the loader shows while its copy stands down — is the bundle's own business. */
+
+/** Published by a loader-launched copy that stood down for the host's copy. */
+export const COOP_DEFER_GLOBAL = "__DECK_SHELVES_DEFER_TO_HOST__" as const;
+/** Set (to its version) by the copy that booted as the host's own bundle. */
+export const COOP_HOST_BUNDLE_BOOTED_GLOBAL = "__DECK_SHELVES_HOST_BUNDLE_BOOTED__" as const;
+/** Renderer storage key holding the host's standing offer (see {@link CoopOffer}).
+ *  The literal predates this contract and is kept for compatibility. */
+export const COOP_OFFER_KEY = "shelveshub-coop-bundle" as const;
+
+/** The defer signal a stood-down loader copy publishes under {@link COOP_DEFER_GLOBAL}. */
+export interface CoopDeferSignal {
+  readonly loaderVersion: string;
+  readonly hostBundleVersion: string;
+  readonly at: number;
+}
+
+/** The host's standing offer, kept in renderer storage under {@link COOP_OFFER_KEY}:
+ *  the bundle version it carries. A loader copy that fell back to booting itself
+ *  stamps `fallbackAt`, and the host withholds the offer for a while. */
+export interface CoopOffer {
+  readonly bundleVersion: string;
+  readonly hostVersion?: string;
+  readonly at?: number;
+  readonly fallbackAt?: number;
+}
+
+function parseVersion(v: string): number[] {
+  return String(v).trim().replace(/^v/i, "").split(/[.+-]/).slice(0, 3).map((p) => Number.parseInt(p, 10) || 0);
+}
+
+/** >0 when `a` is newer, 0 when equal, <0 when older — numeric major.minor.patch,
+ *  ignoring a `v` prefix and any pre-release tail. */
+export function compareVersions(a: string, b: string): number {
+  const pa = parseVersion(a);
+  const pb = parseVersion(b);
+  for (let i = 0; i < 3; i++) {
+    const d = (pa[i] ?? 0) - (pb[i] ?? 0);
+    if (d !== 0) return d;
+  }
+  return 0;
+}
+
+/** The bundle version a live handshake offers (capability `coopBundle`), else null. */
+export function offeredBundle(hs: HostHandshake | null | undefined): string | null {
+  if (!hs || hs.capabilities?.coopBundle !== true || !hs.bundleVersion) return null;
+  return String(hs.bundleVersion);
+}
+
+/** Whether a loader-launched copy must stand down for the host's own copy: only
+ *  under forced ownership, and only for a host bundle at least as new as itself. */
+export function shouldDeferToHost(opts: { forced: boolean; handshake: HostHandshake | null | undefined; ownVersion: string }): boolean {
+  const hostBundle = opts.forced ? offeredBundle(opts.handshake) : null;
+  return hostBundle !== null && compareVersions(hostBundle, opts.ownVersion) >= 0;
+}
+
 /** Shape of the runtime global the host installs in the renderer. */
 export type ShelvesHostGlobal = HostApi;
 
@@ -467,5 +529,9 @@ declare global {
     __DECK_SHELVES_OWNER__?: HostOwnerKind;
     /** Version identity of the bundle that currently owns the renderer. */
     __DECK_SHELVES_OWNER_META__?: HostOwnerMetadata;
+    /** Cooperative hand-over: the loader copy's defer signal (see {@link COOP_DEFER_GLOBAL}). */
+    __DECK_SHELVES_DEFER_TO_HOST__?: CoopDeferSignal;
+    /** Cooperative hand-over: the version of the host's own copy once it booted. */
+    __DECK_SHELVES_HOST_BUNDLE_BOOTED__?: string;
   }
 }

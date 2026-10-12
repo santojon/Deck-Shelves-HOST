@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { HOST_API_VERSION, OWNER_METADATA_GLOBAL, type HostApi, type QamPanel, type HostUpdates, type MainMenuEntry, type HostOwnerMetadata } from "./index";
+import { HOST_API_VERSION, OWNER_METADATA_GLOBAL, COOP_DEFER_GLOBAL, COOP_HOST_BUNDLE_BOOTED_GLOBAL, COOP_OFFER_KEY, compareVersions, offeredBundle, shouldDeferToHost, type HostApi, type QamPanel, type HostUpdates, type MainMenuEntry, type HostOwnerMetadata, type HostHandshake } from "./index";
 
 describe("HostApi contract", () => {
   it("exposes a semver HOST_API_VERSION", () => {
@@ -103,5 +103,37 @@ describe("HostApi contract", () => {
     const metadata: HostOwnerMetadata = { host: "shelveshub", dsVersion: "3.3.0" };
     expect(OWNER_METADATA_GLOBAL).toBe("__DECK_SHELVES_OWNER_META__");
     expect(metadata).toEqual({ host: "shelveshub", dsVersion: "3.3.0" });
+  });
+});
+
+describe("cooperative bundle hand-over", () => {
+  const handshake = (capabilities: Record<string, boolean>, bundleVersion?: string): HostHandshake => ({
+    hostKind: "host", hostVersion: "0.6.0", hostApiVersion: HOST_API_VERSION, capabilities, bundleVersion,
+  });
+
+  it("names the renderer globals and the offer key", () => {
+    expect(COOP_DEFER_GLOBAL).toBe("__DECK_SHELVES_DEFER_TO_HOST__");
+    expect(COOP_HOST_BUNDLE_BOOTED_GLOBAL).toBe("__DECK_SHELVES_HOST_BUNDLE_BOOTED__");
+    expect(COOP_OFFER_KEY).toBe("shelveshub-coop-bundle");
+  });
+
+  it("compares numeric versions, ignoring a v prefix and pre-release tails", () => {
+    expect(compareVersions("v3.4.0", "3.4.0")).toBe(0);
+    expect(compareVersions("3.4.1", "3.4.0")).toBeGreaterThan(0);
+    expect(compareVersions("3.3.9", "3.4.0")).toBeLessThan(0);
+    expect(compareVersions("3.4.0-beta.1", "3.4.0")).toBe(0);
+  });
+
+  it("offers a bundle only with the capability and a version, and defers only under force for a newer-or-equal one", () => {
+    expect(offeredBundle(handshake({ coopBundle: true }, "v3.4.0"))).toBe("v3.4.0");
+    expect(offeredBundle(handshake({ coopBundle: false }, "v3.4.0"))).toBeNull();
+    expect(offeredBundle(handshake({ coopBundle: true }))).toBeNull();
+    expect(offeredBundle(null)).toBeNull();
+    const hs = handshake({ coopBundle: true }, "v3.4.0");
+    expect(shouldDeferToHost({ forced: true, handshake: hs, ownVersion: "3.4.0" })).toBe(true);
+    expect(shouldDeferToHost({ forced: true, handshake: hs, ownVersion: "3.3.0" })).toBe(true);
+    expect(shouldDeferToHost({ forced: true, handshake: hs, ownVersion: "3.5.0" })).toBe(false);
+    expect(shouldDeferToHost({ forced: false, handshake: hs, ownVersion: "3.4.0" })).toBe(false);
+    expect(shouldDeferToHost({ forced: true, handshake: null, ownVersion: "3.4.0" })).toBe(false);
   });
 });
