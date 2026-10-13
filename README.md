@@ -54,6 +54,7 @@ host↔bundle contract, a different audience.
 | Path | What it is |
 |---|---|
 | `src/contract/` | **`HostApi` types** (`HOST_API_VERSION`, `lifecycle`, `rpc`, `ui`, `routes`, `notifications`, `platform`, optional `React`/`ReactDOM`/`jsx`, `qam`, `mainMenu`, `updates`). The single source of truth both hosts and the bundle build against. |
+| `src/contract/` (ownership + hand-over) | The renderer globals for ownership (`__SHELVES_FORCE_OWNER__`, `__DECK_SHELVES_OWNER__`, …) and for the cooperative bundle hand-over (`COOP_DEFER_GLOBAL`, `COOP_HOST_BUNDLE_BOOTED_GLOBAL`, `COOP_OFFER_KEY`, the `CoopDeferSignal` / `CoopOffer` shapes, `compareVersions`, `offeredBundle`, `shouldDeferToHost`). Hosts written in other languages mirror the literals. |
 
 ## Usage
 
