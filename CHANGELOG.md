@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-10-13
+
 ### Added
 
 - **Cooperative bundle hand-over protocol.** The renderer globals a loader-launched bundle copy and a host's own copy agree on (`COOP_DEFER_GLOBAL`, `COOP_HOST_BUNDLE_BOOTED_GLOBAL`), the storage key of the host's standing offer (`COOP_OFFER_KEY`), the `CoopDeferSignal` / `CoopOffer` shapes, and the pure rule a loader copy stands down on (`compareVersions`, `offeredBundle`, `shouldDeferToHost`), plus the two `Window` fields. Previously these lived only in the bundle; hosts written in other languages mirror the literals. `HOST_API_VERSION` 1.4.0 → 1.5.0 (additive).
