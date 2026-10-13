@@ -329,8 +329,9 @@ export interface HostHandshake {
    *  guess. Additive (hosts that predate it omit it) — the bundle falls back to its
    *  own detection when absent. */
   readonly device?: HostDevice;
-  /** Optional version of the Deck Shelves bundle this host carries/injects. Lets a
-   *  cooperative setup compare the loader copy against the host's copy. */
+  /** Optional version of the Deck Shelves bundle this host carries/injects: the
+   *  release it last installed, else the version embedded in the bundle file it
+   *  holds. Lets a cooperative setup compare the loader copy against the host's. */
   readonly bundleVersion?: string;
 }
 
