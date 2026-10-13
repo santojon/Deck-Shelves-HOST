@@ -251,12 +251,14 @@ export interface HostMainMenu {
  *  file install). A loader that can only hand the user a file does NOT implement
  *  this — the bundle then falls back to the manual download flow. */
 export interface HostUpdates {
-  /** True if this host can self-install (drives the button: "Install" vs "Download"). */
+  /** True if this host can self-install the bundle copy that is running, i.e. that copy
+   *  is the host's own (drives the button: "Install" vs "Download"). */
   canSelfInstall(): boolean;
   /** Obtain the release and swap it in. The host then re-runs the new bundle in
    *  place on its own; no renderer reload follows, so the caller closes any
    *  progress UI itself. `assetUrl`/`assetName` point at the bundle artifact the
-   *  host injects (the IIFE). */
+   *  host injects (the IIFE). A rejection whose message carries `busy: ` means the host
+   *  cannot take it right now (its own update check runs): retry later, no manual download. */
   applyUpdate(release: {
     version: string;
     assetUrl?: string;
@@ -320,18 +322,19 @@ export interface HostHandshake {
   readonly hostVersion: string;
   /** The contract version the host implements ({@link HOST_API_VERSION}). */
   readonly hostApiVersion: string;
-  /** Feature flags the bundle branches on. Known optional flags (all default false
-   *  when absent): `teardown`, `selfUpdate`, `nativeQam`, `coexist`, `pointerInput`
-   *  (host forwards pointer events), `xr` (host runs in an XR/headset session),
-   *  `coopBundle` (host can run its OWN bundle in cooperative mode). */
+  /** Feature flags the bundle branches on; they may change during a session, so re-read
+   *  them. Known optional flags (all default false when absent): `teardown`, `coexist`,
+   *  `nativeQam` (the host's own Quick Access tab is in the menu strip), `selfUpdate`
+   *  (equals `updates.canSelfInstall()`), `pointerInput` (host forwards pointer events), `xr`
+   *  (an XR/headset session), `coopBundle` (host can run its OWN bundle in cooperative mode). */
   readonly capabilities: Readonly<Record<string, boolean>>;
   /** Optional device identity, from the host's own detection, so the bundle need not
    *  guess. Additive (hosts that predate it omit it) — the bundle falls back to its
    *  own detection when absent. */
   readonly device?: HostDevice;
   /** Optional version of the Deck Shelves bundle this host carries/injects: the
-   *  release it last installed, else the version embedded in the bundle file it
-   *  holds. Lets a cooperative setup compare the loader copy against the host's. */
+   *  release it last installed, else — while it offers the cooperative bundle — the
+   *  version embedded in the bundle file it holds; absent until either is known. */
   readonly bundleVersion?: string;
 }
 

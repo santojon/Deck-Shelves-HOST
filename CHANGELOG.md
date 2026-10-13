@@ -20,6 +20,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   unchanged.
 - **`HostUpdates.applyUpdate` doc comment.** The host re-runs the new bundle in place on its own;
   no renderer reload follows, so the caller closes any progress UI itself. Comment only.
+- **`HostHandshake.bundleVersion` doc comment.** The recorded release tag, else (under the
+  cooperative bundle) the version the bundle file embeds. Comment only.
+- **Capability and busy semantics documented.** `nativeQam` means the host's own Quick Access tab
+  is in the menu strip; `selfUpdate` equals `updates.canSelfInstall()`, true while the running
+  bundle copy is the host's own; the flags may change during a session, so a bundle re-reads the
+  handshake. `applyUpdate` rejects with `busy: …` in the message while the host cannot take the
+  request (its own update check runs): the bundle asks for a retry instead of the manual download.
+  Comment only.
 
 ## [1.6.0] - 2026-10-13
 
