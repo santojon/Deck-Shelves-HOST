@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`compareVersions` is pre-release aware.** It orders by semver precedence, the way the
+  daemon-side check does: a stable release outranks a pre-release of the same core
+  (`3.4.0` > `3.4.0-beta.2`), pre-release identifiers compare numerically, then lexically
+  (`beta.2` > `beta.1`, `rc.1` > `beta.9`), build metadata (`+…`) is ignored, and text that is
+  not an `x.y.z[-pre]` version is never newer than anything (it ranks below any version; two
+  such texts compare equal). Previously the pre-release tail was dropped, so `3.4.0-beta.1`
+  compared equal to `3.4.0` and a loader copy could stand down (`shouldDeferToHost`) for a host
+  bundle that was only a pre-release of its own version. Same signature; `HOST_API_VERSION`
+  unchanged.
+- **`HostUpdates.applyUpdate` doc comment.** The host re-runs the new bundle in place on its own;
+  no renderer reload follows, so the caller closes any progress UI itself. Comment only.
+- **`HostHandshake.bundleVersion` doc comment.** The recorded release tag, else (under the
+  cooperative bundle) the version the bundle file embeds. Comment only.
+- **Capability and busy semantics documented.** `nativeQam` means the host's own Quick Access tab
+  is in the menu strip; `selfUpdate` equals `updates.canSelfInstall()`, true while the running
+  bundle copy is the host's own; the flags may change during a session, so a bundle re-reads the
+  handshake. `applyUpdate` rejects with `busy: …` in the message while the host cannot take the
+  request (its own update check runs): the bundle asks for a retry instead of the manual download.
+  Comment only.
+
 ## [1.6.0] - 2026-10-13
 
 ### Added

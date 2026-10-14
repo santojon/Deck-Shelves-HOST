@@ -251,10 +251,14 @@ export interface HostMainMenu {
  *  file install). A loader that can only hand the user a file does NOT implement
  *  this — the bundle then falls back to the manual download flow. */
 export interface HostUpdates {
-  /** True if this host can self-install (drives the button: "Install" vs "Download"). */
+  /** True if this host can self-install the bundle copy that is running, i.e. that copy
+   *  is the host's own (drives the button: "Install" vs "Download"). */
   canSelfInstall(): boolean;
-  /** Obtain the release and swap it in, then reload. `assetUrl`/`assetName` point
-   *  at the bundle artifact the host injects (the IIFE). */
+  /** Obtain the release and swap it in. The host then re-runs the new bundle in
+   *  place on its own; no renderer reload follows, so the caller closes any
+   *  progress UI itself. `assetUrl`/`assetName` point at the bundle artifact the
+   *  host injects (the IIFE). A rejection whose message carries `busy: ` means the host
+   *  cannot take it right now (its own update check runs): retry later, no manual download. */
   applyUpdate(release: {
     version: string;
     assetUrl?: string;
@@ -318,17 +322,19 @@ export interface HostHandshake {
   readonly hostVersion: string;
   /** The contract version the host implements ({@link HOST_API_VERSION}). */
   readonly hostApiVersion: string;
-  /** Feature flags the bundle branches on. Known optional flags (all default false
-   *  when absent): `teardown`, `selfUpdate`, `nativeQam`, `coexist`, `pointerInput`
-   *  (host forwards pointer events), `xr` (host runs in an XR/headset session),
-   *  `coopBundle` (host can run its OWN bundle in cooperative mode). */
+  /** Feature flags the bundle branches on; they may change during a session, so re-read
+   *  them. Known optional flags (all default false when absent): `teardown`, `coexist`,
+   *  `nativeQam` (the host's own Quick Access tab is in the menu strip), `selfUpdate`
+   *  (equals `updates.canSelfInstall()`), `pointerInput` (host forwards pointer events), `xr`
+   *  (an XR/headset session), `coopBundle` (host can run its OWN bundle in cooperative mode). */
   readonly capabilities: Readonly<Record<string, boolean>>;
   /** Optional device identity, from the host's own detection, so the bundle need not
    *  guess. Additive (hosts that predate it omit it) — the bundle falls back to its
    *  own detection when absent. */
   readonly device?: HostDevice;
-  /** Optional version of the Deck Shelves bundle this host carries/injects. Lets a
-   *  cooperative setup compare the loader copy against the host's copy. */
+  /** Optional version of the Deck Shelves bundle this host carries/injects: the
+   *  release it last installed, else — while it offers the cooperative bundle — the
+   *  version embedded in the bundle file it holds; absent until either is known. */
   readonly bundleVersion?: string;
 }
 
@@ -446,20 +452,60 @@ export interface CoopOffer {
   readonly fallbackAt?: number;
 }
 
-function parseVersion(v: string): number[] {
-  return String(v).trim().replace(/^v/i, "").split(/[.+-]/).slice(0, 3).map((p) => Number.parseInt(p, 10) || 0);
+/** `major.minor.patch` plus the dot-separated pre-release identifiers (empty for
+ *  a stable release). A `v` prefix and build metadata (`+…`) are dropped. */
+type ParsedVersion = { core: [number, number, number]; pre: string[] };
+
+function parseVersion(v: string): ParsedVersion | null {
+  const s = String(v).trim().replace(/^v/i, "").split("+")[0] ?? "";
+  const dash = s.indexOf("-");
+  const parts = (dash < 0 ? s : s.slice(0, dash)).split(".");
+  if (parts.length < 3 || !parts.slice(0, 3).every((p) => /^\d+$/.test(p))) return null;
+  const core = parts.slice(0, 3).map((p) => Number.parseInt(p, 10)) as [number, number, number];
+  const pre = dash < 0 ? "" : s.slice(dash + 1);
+  return { core, pre: pre === "" ? [] : pre.split(".") };
 }
 
-/** >0 when `a` is newer, 0 when equal, <0 when older — numeric major.minor.patch,
- *  ignoring a `v` prefix and any pre-release tail. */
+/** Semver §11: numeric identifiers compare numerically and rank below
+ *  alphanumeric ones; alphanumeric ones compare lexically. */
+function compareIdentifier(x: string, y: string): number {
+  const nx = /^\d+$/.test(x);
+  const ny = /^\d+$/.test(y);
+  if (nx && ny) return Number(x) - Number(y);
+  if (nx !== ny) return nx ? -1 : 1;
+  return x < y ? -1 : x > y ? 1 : 0;
+}
+
+/** Identifier by identifier; a longer list outranks its own prefix. */
+function comparePrerelease(a: string[], b: string[]): number {
+  const n = Math.min(a.length, b.length);
+  for (let i = 0; i < n; i++) {
+    const d = compareIdentifier(a[i] ?? "", b[i] ?? "");
+    if (d !== 0) return d;
+  }
+  return a.length - b.length;
+}
+
+/** Same core: a stable release (no identifiers) outranks any pre-release. */
+function compareTails(a: string[], b: string[]): number {
+  if (a.length === 0 || b.length === 0) return (a.length === 0 ? 1 : 0) - (b.length === 0 ? 1 : 0);
+  return comparePrerelease(a, b);
+}
+
+/** >0 when `a` is newer, 0 when equal, <0 when older, by semver precedence:
+ *  numeric `major.minor.patch`, then a stable release outranks a pre-release of
+ *  the same core, then pre-release identifiers (`beta.2` > `beta.1`). A `v`
+ *  prefix and build metadata are ignored. Text that is not a version is never
+ *  newer: it ranks below any version, and two such texts compare equal. */
 export function compareVersions(a: string, b: string): number {
   const pa = parseVersion(a);
   const pb = parseVersion(b);
+  if (!pa || !pb) return (pa ? 1 : 0) - (pb ? 1 : 0);
   for (let i = 0; i < 3; i++) {
-    const d = (pa[i] ?? 0) - (pb[i] ?? 0);
+    const d = pa.core[i] - pb.core[i];
     if (d !== 0) return d;
   }
-  return 0;
+  return compareTails(pa.pre, pb.pre);
 }
 
 /** The bundle version a live handshake offers (capability `coopBundle`), else null. */

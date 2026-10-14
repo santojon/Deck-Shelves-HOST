@@ -117,11 +117,39 @@ describe("cooperative bundle hand-over", () => {
     expect(COOP_OFFER_KEY).toBe("shelveshub-coop-bundle");
   });
 
-  it("compares numeric versions, ignoring a v prefix and pre-release tails", () => {
+  it("compares versions by semver precedence, ignoring a v prefix and build metadata", () => {
     expect(compareVersions("v3.4.0", "3.4.0")).toBe(0);
     expect(compareVersions("3.4.1", "3.4.0")).toBeGreaterThan(0);
     expect(compareVersions("3.3.9", "3.4.0")).toBeLessThan(0);
-    expect(compareVersions("3.4.0-beta.1", "3.4.0")).toBe(0);
+    expect(compareVersions("3.4.0+build.7", "3.4.0")).toBe(0);
+    // A stable release outranks a pre-release of the same core; a higher core wins regardless of suffix.
+    expect(compareVersions("3.4.0", "3.4.0-beta.1")).toBeGreaterThan(0);
+    expect(compareVersions("3.4.0-beta.1", "3.4.0")).toBeLessThan(0);
+    expect(compareVersions("3.3.0-beta.2", "3.0.0")).toBeGreaterThan(0);
+    // Pre-release identifiers: numeric before alphanumeric, numerically; alphanumeric lexically; a longer list wins.
+    expect(compareVersions("3.4.0-beta.2", "3.4.0-beta.1")).toBeGreaterThan(0);
+    expect(compareVersions("3.4.0-beta.10", "3.4.0-beta.9")).toBeGreaterThan(0);
+    expect(compareVersions("3.4.0-rc.1", "3.4.0-beta.9")).toBeGreaterThan(0);
+    expect(compareVersions("3.4.0-alpha.1", "3.4.0-alpha.beta")).toBeLessThan(0);
+    expect(compareVersions("3.4.0-beta.1", "3.4.0-beta")).toBeGreaterThan(0);
+    expect(compareVersions("3.4.0-beta.1", "v3.4.0-beta.1")).toBe(0);
+  });
+
+  it("never ranks text that is not a version as newer", () => {
+    expect(compareVersions("local", "0.0.1")).toBeLessThan(0);
+    expect(compareVersions("3.4", "3.4.0")).toBeLessThan(0);
+    expect(compareVersions("3.4.0", "local")).toBeGreaterThan(0);
+    expect(compareVersions("local", "dev")).toBe(0);
+    const hs = handshake({ coopBundle: true }, "local");
+    expect(shouldDeferToHost({ forced: true, handshake: hs, ownVersion: "3.4.0" })).toBe(false);
+  });
+
+  it("defers for a stable host bundle over the same pre-release, never the reverse", () => {
+    const stable = handshake({ coopBundle: true }, "v3.4.0");
+    const beta = handshake({ coopBundle: true }, "v3.4.0-beta.2");
+    expect(shouldDeferToHost({ forced: true, handshake: stable, ownVersion: "3.4.0-beta.2" })).toBe(true);
+    expect(shouldDeferToHost({ forced: true, handshake: beta, ownVersion: "3.4.0" })).toBe(false);
+    expect(shouldDeferToHost({ forced: true, handshake: beta, ownVersion: "3.4.0-beta.1" })).toBe(true);
   });
 
   it("offers a bundle only with the capability and a version, and defers only under force for a newer-or-equal one", () => {
